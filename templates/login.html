@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="login-page">
+    <div class="login-card">
+        <h1>SNO Hiring Cost Tracker</h1>
+        <p class="subtitle">Weekly cost &amp; hiring submission portal</p>
+
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" placeholder="e.g. SNO Channel" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="passcode">Passcode</label>
+                <input type="password" id="passcode" name="passcode" placeholder="Enter your passcode" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Login</button>
+        </form>
+
+        <details class="channels-hint">
+            <summary>Available logins</summary>
+            <table>
+                <tr><th>Channel</th><th>Passcode</th></tr>
+                {% for ch in channels %}
+                <tr><td>{{ ch.name }}</td><td><code>{{ ch.passcode }}</code></td></tr>
+                {% endfor %}
+                <tr class="admin-row"><td><strong>Tulika (Admin)</strong></td><td><code>admin123</code></td></tr>
+            </table>
+        </details>
+    </div>
+</div>
+{% endblock %}

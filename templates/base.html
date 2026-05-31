@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNO Hiring Cost Tracker</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    {% if user %}
+    <nav class="navbar">
+        <div class="nav-brand">SNO Hiring Cost Tracker</div>
+        <div class="nav-right">
+            <span class="nav-user">{{ user.name }}{% if user.is_admin %} (Admin){% endif %}</span>
+            <a href="/logout" class="btn btn-sm btn-outline">Logout</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="container">
+        {% if msg %}
+        <div class="flash {{ msg_type or 'info' }}">{{ msg }}</div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

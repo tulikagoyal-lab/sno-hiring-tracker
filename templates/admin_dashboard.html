@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Admin Dashboard</h2>
+
+<div class="tabs">
+    <a href="?tab=submissions" class="tab {% if not tab or tab == 'submissions' %}active{% endif %}">Submissions</a>
+    <a href="?tab=wow" class="tab {% if tab == 'wow' %}active{% endif %}">WoW Summary</a>
+    <a href="?tab=cpfod" class="tab {% if tab == 'cpfod' %}active{% endif %}">CPFOD Analysis</a>
+    <a href="?tab=channels" class="tab {% if tab == 'channels' %}active{% endif %}">Channels</a>
+</div>
+
+<div class="week-selector">
+    <form method="GET" action="/admin" class="flex-between gap-1">
+        <input type="hidden" name="tab" value="{{ tab or 'submissions' }}">
+        <select name="week" onchange="this.form.submit()">
+            {% for w in weeks_available %}
+            <option value="{{ w }}" {% if w == selected_week %}selected{% endif %}>{{ w }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <a href="/admin/orders/fetch" class="btn btn-primary btn-sm">Fetch Orders</a>
+    <a href="/admin/orders/save" class="btn btn-success btn-sm">Save Orders</a>
+    <a href="/api/admin/export" class="btn btn-outline btn-sm" style="border-color: var(--primary); color: var(--primary);">Export Excel</a>
+</div>
+
+{% if fetched_orders %}
+<div class="flash info">
+    Fetched Orders: SNO IM = {{ fetched_orders.sno_im }}, SOC IM = {{ fetched_orders.soc_im }} ({{ fetched_orders.week_label }})
+</div>
+{% endif %}
+
+<div class="tab-content {% if not tab or tab == 'submissions' %}active{% endif %}">
+    <div class="chart-box" style="overflow-x: auto;">
+        {% if channels_data %}
+        {% for cd in channels_data %}
+        <div class="card mb-1">
+            <div class="card-header">{{ cd.channel }}</div>
+            <div class="card-body">
+                <p>Week: {{ cd.week_label or 'N/A' }} | Total Cost: {{ cd.total_cost or 0 }} | Total Hiring: {{ cd.total_hiring or 0 }}</p>
+                {% if cd.metrics %}
+                <table>
+                    <tr><th>Metric</th><th>Value</th></tr>
+                    {% for mk, mv in cd.metrics.items() %}
+                    <tr><td>{{ mk }}</td><td>{{ mv }}</td></tr>
+                    {% endfor %}
+                </table>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-center" style="color: var(--text-muted);">No submissions for this week.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="tab-content {% if tab == 'wow' %}active{% endif %}">
+    <div class="chart-box" style="overflow-x: auto;">
+        {% if wow %}
+        <table>
+            <thead>
+                <tr><th>Channel</th><th>Metric</th><th>Current</th><th>Previous</th><th>Change</th></tr>
+            </thead>
+            <tbody>
+            {% for row in wow %}
+                <tr>
+                    <td>{{ row.channel }}</td>
+                    <td>{{ row.metric }}</td>
+                    <td>{{ row.current_value }}</td>
+                    <td>{{ row.prev_value }}</td>
+                    <td><span class="tag {{ row.tag_class }}">{{ row.change_pct }}</span></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-center" style="color: var(--text-muted);">Need 2+ weeks of data.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="tab-content {% if tab == 'cpfod' %}active{% endif %}">
+    <form method="GET" action="/admin" class="week-selector">
+        <input type="hidden" name="tab" value="cpfod">
+        <label>Base:</label>
+        <select name="base_week" onchange="this.form.submit()">
+            {% for w in weeks_available %}
+            <option value="{{ w }}" {% if w == base_week %}selected{% endif %}>{{ w }}</option>
+            {% endfor %}
+        </select>
+        <label>Compare:</label>
+        <select name="compare_week" onchange="this.form.submit()">
+            {% for w in weeks_available %}
+            <option value="{{ w }}" {% if w == compare_week %}selected{% endif %}>{{ w }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <div class="chart-box" style="overflow-x: auto;">
+        {% if cpfod %}
+        <table>
+            <thead>
+                <tr><th>Channel</th><th>Metric</th><th>{{ base_week }}</th><th>{{ compare_week }}</th><th>Change</th></tr>
+            </thead>
+            <tbody>
+            {% for row in cpfod %}
+                <tr>
+                    <td>{{ row.channel }}</td>
+                    <td>{{ row.metric }}</td>
+                    <td>{{ row.base_val }}</td>
+                    <td>{{ row.compare_val }}</td>
+                    <td><span class="tag {{ 'tag-up' if row.change_val and row.change_val > 0 else 'tag-down' }}">{{ row.change_str }}</span></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-center" style="color: var(--text-muted);">Select two weeks to compare.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="tab-content {% if tab == 'channels' %}active{% endif %}">
+    {% if admin_channels %}
+    <table>
+        <thead><tr><th>Channel</th><th>Passcode</th><th>Sections</th><th>Metrics</th></tr></thead>
+        <tbody>
+        {% for ch in admin_channels %}
+            <tr>
+                <td>{{ ch.name }}</td>
+                <td><code>{{ ch.passcode }}</code></td>
+                <td>{{ ch.sections_count }}</td>
+                <td>{{ ch.metrics_count }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endblock %}

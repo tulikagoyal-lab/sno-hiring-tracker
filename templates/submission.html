@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ channel_name }} — Weekly Submission</h2>
+<p class="mb-2" style="color: var(--text-muted);">
+    Week: <strong>{{ week_label }}</strong> (starting {{ week_start }})
+</p>
+
+<form method="POST" action="/submission">
+    <input type="hidden" name="week_label" value="{{ week_label }}">
+
+    {% for section in sections %}
+    <div class="collapsible {% if not loop.first %}collapsed{% endif %}">
+        <div class="collapsible-header">{{ section.section_name }}</div>
+        <div class="collapsible-body">
+            <div class="metric-grid">
+                {% for m in section.metrics %}
+                <div class="metric-field">
+                    <label for="{{ m.key }}">{{ m.label }}</label>
+                    <input type="number" step="any" id="{{ m.key }}" name="{{ m.key }}"
+                           value="{{ m.default_value if m.default_value is not none else '' }}"
+                           class="{% if m.is_order %}order-field{% endif %}"
+                           placeholder="0">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="mt-2">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</form>
+
+{% if past_weeks %}
+<div class="card mt-2">
+    <div class="card-header">Past Submissions</div>
+    <div class="card-body">
+        <ul style="list-style: none;">
+        {% for wk in past_weeks %}
+            <li style="padding: 0.25rem 0;">&#128197; {{ wk }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.collapsible-header').forEach(h => {
+    h.addEventListener('click', () => h.parentElement.classList.toggle('collapsed'));
+});
+</script>
+{% endblock %}
